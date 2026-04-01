@@ -103,13 +103,35 @@ export default function App() {
 
       {/* 날짜 탭 */}
       <div style={{ background: "#fff", borderBottom: "1px solid rgba(0,180,180,0.15)", padding: "0 1rem", display: "flex", alignItems: "center", gap: 4, overflowX: "auto" }}>
-        {days.map(d => (
-          <button key={d.id} onClick={() => setActiveDay(d.id)} style={{
-            fontFamily: "'Nunito', sans-serif", fontSize: 13, fontWeight: 700,
-            padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", whiteSpace: "nowrap",
-            color: activeDay === d.id ? "#3ecfb2" : "#5a8a8a",
-            borderBottom: activeDay === d.id ? "2.5px solid #3ecfb2" : "2.5px solid transparent",
-          }}>
+        {days.map((d, i) => (
+          <button
+            key={d.id}
+            draggable
+            onDragStart={e => e.dataTransfer.setData("dayId", String(d.id))}
+            onDragOver={e => e.preventDefault()}
+            onDrop={e => {
+              e.preventDefault();
+              const fromId = Number(e.dataTransfer.getData("dayId"));
+              if (fromId === d.id) return;
+              const arr = [...days];
+              const fromIdx = arr.findIndex(x => x.id === fromId);
+              const toIdx = arr.findIndex(x => x.id === d.id);
+              const [moved] = arr.splice(fromIdx, 1);
+              arr.splice(toIdx, 0, moved);
+              const renamed = arr.map((x, idx) => ({
+                ...x,
+                label: x.label.match(/^\d+일차$/) ? `${idx + 1}일차` : x.label
+              }));
+              setDays(renamed);
+            }}
+            onClick={() => setActiveDay(d.id)}
+            style={{
+              fontFamily: "'Nunito', sans-serif", fontSize: 13, fontWeight: 700,
+              padding: "12px 16px", border: "none", background: "transparent", cursor: "grab", whiteSpace: "nowrap",
+              color: activeDay === d.id ? "#3ecfb2" : "#5a8a8a",
+              borderBottom: activeDay === d.id ? "2.5px solid #3ecfb2" : "2.5px solid transparent",
+              userSelect: "none",
+            }}>
             {d.label}{d.date ? ` · ${d.date}` : ""}
           </button>
         ))}
